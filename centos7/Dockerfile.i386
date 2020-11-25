@@ -1,0 +1,45 @@
+FROM i386/centos:7
+LABEL maintainer="pmrsbot@mcs.anl.gov"
+
+# install build tools
+RUN yum update -y \
+    && yum install -y \
+    wget \
+    tar \
+    gzip \
+    perl \
+    perl-Data-Dumper \
+    perl-Thread-Queue \
+    help2man \
+    which \
+    file \
+    patch \
+    m4 \
+    gcc \
+    gcc-c++ \
+    gcc-gfortran \
+    clang \
+    git \
+    make \
+    zsh \
+    numactl-devel \
+    gdb \
+    perf \
+    strace \
+    emacs-nox \
+    python3 \
+    valgrind \
+    && yum clean all
+
+# install autotools from source
+RUN cd /tmp && wget http://mirror.team-cymru.com/gnu/autoconf/autoconf-2.69.tar.gz && tar xfz autoconf-2.69.tar.gz && cd autoconf-2.69 && ./configure && make install
+RUN cd /tmp && rm -rf autoconf-*
+RUN cd /tmp && wget http://mirror.team-cymru.com/gnu/automake/automake-1.15.tar.gz && tar xfz automake-1.15.tar.gz && cd automake-1.15 && ./configure && make install
+RUN cd /tmp && rm -rf automake-*
+RUN cd /tmp && wget http://mirror.team-cymru.com/gnu/libtool/libtool-2.4.6.tar.gz && tar xfz libtool-2.4.6.tar.gz && cd libtool-2.4.6 && ./configure && make install
+RUN cd /tmp && rm -rf libtool-*
+
+# install gcc-9 (for sanitizers)
+ADD centos7/files/build_gcc.sh /tmp/build_gcc.sh
+RUN cd /tmp && chmod +x build_gcc.sh && ./build_gcc.sh 9
+RUN cd /tmp && rm -rf gcc-*
